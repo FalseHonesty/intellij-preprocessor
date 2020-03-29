@@ -1,0 +1,27 @@
+<idea-plugin>
+    <id>dev.falsehonesty.intellij-preprocessor</id>
+    <name>Preprocessor Support</name>
+    <vendor email="falsehonesty@sk1er.club" url="https://falsehonesty.dev">FalseHonesty</vendor>
+
+    <description><![CDATA[
+    An IntelliJ plugin to add support for comment-based
+    <a href="https://github.com/Sk1erLLC/Elementa/blob/master/PREPROCESSOR.md">preprocessor macros</a>.
+    ]]></description>
+
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <highlightVisitor implementation="dev.falsehonesty.PreprocessorHighlightVisitor" />
+        <enterHandlerDelegate implementation="dev.falsehonesty.EnterHandler" order="first"/>
+        <lang.importOptimizer language="JAVA" implementationClass="dev.falsehonesty.ImportOptimizer" order="first"/>
+        <completion.contributor language="any" implementationClass="dev.falsehonesty.PreprocessorCompletion" />
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+</idea-plugin>

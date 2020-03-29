@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '0.4.17'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.71'
+}
+
+group 'dev.falsehonesty'
+version '0.1.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+    version '201.6487.11-EAP-SNAPSHOT'
+    plugins 'java'
+}
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+patchPluginXml {
+    changeNotes """
+      Initial Plugin release supporting highlighting, import handling,
+      directive completion, and automatic code continuation in comments."""
+}
+publishPlugin {
+    token intellijPublishToken
+}
