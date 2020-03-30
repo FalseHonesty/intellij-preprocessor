@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>dev.falsehonesty.intellij-preprocessor</id>
     <name>Preprocessor Support</name>
-    <vendor email="falsehonesty@sk1er.club" url="https://falsehonesty.dev">FalseHonesty</vendor>
+    <vendor email="falsehonesty@sk1er.club" url="https://chattriggers.com">FalseHonesty</vendor>
 
     <description><![CDATA[
     An IntelliJ plugin to add support for comment-based
