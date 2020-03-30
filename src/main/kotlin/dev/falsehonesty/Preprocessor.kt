@@ -1,6 +1,6 @@
 package dev.falsehonesty
 
-val ALLOWED_TYPES = listOf("JAVA")
+val ALLOWED_TYPES = listOf("JAVA", "KOTLIN")
 
 enum class PreprocessorState {
     NONE,

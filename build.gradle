@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'dev.falsehonesty'
-version '0.1.1'
+version '0.1.2'
 
 repositories {
     mavenCentral()
@@ -29,8 +29,7 @@ compileTestKotlin {
 }
 patchPluginXml {
     changeNotes """
-      Initial Plugin release supporting highlighting, import handling,
-      directive completion, and automatic code continuation in comments."""
+      Added support for Kotlin files."""
 }
 publishPlugin {
     token intellijPublishToken

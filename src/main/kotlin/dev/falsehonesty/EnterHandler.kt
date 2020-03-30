@@ -21,7 +21,8 @@ class EnterHandler : EnterHandlerDelegateAdapter(), DumbAware {
         dataContext: DataContext,
         originalHandler: EditorActionHandler?
     ): Result {
-        if (EnterHandler.getLanguage(dataContext)?.associatedFileType?.name !in ALLOWED_TYPES) return Result.Continue
+        if (EnterHandler.getLanguage(dataContext)?.associatedFileType?.name?.toUpperCase() !in ALLOWED_TYPES)
+            return Result.Continue
 
         val caret: Int = caretOffset.get().toInt()
         val psiAtOffset = file.findElementAt(caret)

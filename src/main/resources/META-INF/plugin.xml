@@ -5,7 +5,7 @@
 
     <description><![CDATA[
     An IntelliJ plugin to add support for comment-based
-    <a href="https://github.com/Sk1erLLC/Elementa/blob/master/PREPROCESSOR.md">preprocessor macros</a>.
+    <a href="https://github.com/ReplayMod/preprocessor">preprocessor macros</a>.
     ]]></description>
 
     <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
