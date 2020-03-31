@@ -7,7 +7,7 @@ import com.intellij.psi.*
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.impl.source.tree.PsiCommentImpl
 
-class ImportOptimizer : ImportOptimizer {
+class JavaImportOptimizer : ImportOptimizer {
     override fun supports(file: PsiFile): Boolean {
         return file is PsiJavaFile
     }
@@ -21,7 +21,7 @@ class ImportOptimizer : ImportOptimizer {
         if (!hasPreprocessorDirectives(imports)) {
             val javaImportOptimizer = LanguageImportStatements.INSTANCE
                 .allForLanguage(file.language)
-                .first { it !is dev.falsehonesty.ImportOptimizer  }
+                .first { it !is JavaImportOptimizer  }
 
             return javaImportOptimizer.processFile(file)
         }
