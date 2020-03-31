@@ -18,7 +18,10 @@
         <highlightVisitor implementation="dev.falsehonesty.PreprocessorHighlightVisitor" />
         <enterHandlerDelegate implementation="dev.falsehonesty.EnterHandler" order="first"/>
         <lang.importOptimizer language="JAVA" implementationClass="dev.falsehonesty.ImportOptimizer" order="first"/>
-        <completion.contributor language="any" implementationClass="dev.falsehonesty.PreprocessorCompletion" />
+        <defaultLiveTemplates file="/liveTemplates/Preprocessor.xml" />
+
+        <!-- TODO: Figure out a way to do this without it interfering with live templates -->
+        <!-- <completion.contributor language="any" implementationClass="dev.falsehonesty.PreprocessorCompletion" /> -->
     </extensions>
 
     <actions>
