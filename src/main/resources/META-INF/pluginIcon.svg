@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <defs>
+    <style>
+      .cls-1 {
+        font-size: 18px;
+        fill: gray;
+        font-family: JetBrainsMono-ExtraBold, "JetBrains Mono";
+        font-weight: 700;
+      }
+
+      .cls-2 {
+        fill: #cc7832;
+      }
+    </style>
+  </defs>
+  <text id="_" data-name="//#" class="cls-1" transform="translate(2.158 27.684) scale(1.111)">//<tspan class="cls-2">#</tspan></text>
+</svg>
