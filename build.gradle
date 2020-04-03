@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'dev.falsehonesty'
-version '0.2.0'
+version '0.2.1'
 
 repositories {
     mavenCentral()
@@ -29,8 +29,7 @@ compileTestKotlin {
 }
 patchPluginXml {
     changeNotes """
-      Implemented code folding regions for preprocessor directive blocks.
-      Also added a default live template (pif) to insert a preprocessor if/else block."""
+      Added plugin icon."""
 }
 publishPlugin {
     token intellijPublishToken
