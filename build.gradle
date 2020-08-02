@@ -1,11 +1,11 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '0.4.17'
+    id 'org.jetbrains.intellij' version '0.4.21'
     id 'org.jetbrains.kotlin.jvm' version '1.3.71'
 }
 
 group 'dev.falsehonesty'
-version '0.2.1'
+version '0.2.2'
 
 repositories {
     mavenCentral()
@@ -18,7 +18,7 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '201.6487.11-EAP-SNAPSHOT'
+    version '202.6397.94'
     plugins 'java', 'org.jetbrains.kotlin:1.3.71-release-IJ2020.1-1'
 }
 compileKotlin {
@@ -29,7 +29,9 @@ compileTestKotlin {
 }
 patchPluginXml {
     changeNotes """
-      Added plugin icon."""
+      Updated plugin to be compatible with IntelliJ IDEA 2020.2"""
+    // please see https://jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description
+    sinceBuild "201.6487"
 }
 publishPlugin {
     token intellijPublishToken
