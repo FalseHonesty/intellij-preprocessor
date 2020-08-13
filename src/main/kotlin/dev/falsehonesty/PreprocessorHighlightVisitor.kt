@@ -7,6 +7,7 @@ import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.lang.Commenter
 import com.intellij.lang.LanguageCommenters
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
@@ -67,7 +68,7 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         EditorColorsManager.getInstance()
 
         if (text.startsWith("#")) {
-            val split = text.substring(1).split(" ")
+            val split = text.substring(1).split(WHITESPACES_PATTERN, limit = 2)
 
             when (val command = split[0]) {
                 "if" -> {
@@ -279,6 +280,9 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         val NUMBER_ATTRIBUTES = TextAttributes.merge(SCHEME.getAttributes(NUMBER_COLOR), BOLD_ATTRIBUTE)
         val NUMBER_TYPE = HighlightInfoType.HighlightInfoTypeImpl(HighlightSeverity.INFORMATION, NUMBER_COLOR)
 
+        private val LOGGER: Logger = Logger.getInstance(PreprocessorHighlightVisitor::class.java)
+
+        private val WHITESPACES_PATTERN = "\\s+".toRegex()
         private val EXPR_PATTERN = "(.+)(<=|>=|<|>)(.+)".toRegex()
         private val OR_PATTERN = Pattern.quote("||")
         private val AND_PATTERN = Pattern.quote("&&")
