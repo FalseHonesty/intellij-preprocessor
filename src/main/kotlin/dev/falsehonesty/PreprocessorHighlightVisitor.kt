@@ -9,21 +9,16 @@ import com.intellij.lang.LanguageCommenters
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
-import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
-import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.fileTypes.SyntaxHighlighter
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.impl.source.tree.PsiCommentImpl
-import com.intellij.psi.util.PsiUtilCore
-import com.intellij.util.containers.TreeTraversal
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import java.awt.Font
 import java.util.*
 import java.util.regex.Pattern
@@ -58,81 +53,62 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
 
     override fun visit(element: PsiElement) {
         if (element !is PsiCommentImpl) return
-        var text = element.text
-        if (commenter.lineCommentPrefix?.let { text.startsWith(it) } != true) return
-        val prefixLength = commenter.lineCommentPrefix!!.length
+        val commentSource = element.text
+        if (commenter.lineCommentPrefix?.let { commentSource.startsWith(it) } != true) return
 
-        text = text.substring(commenter.lineCommentPrefix?.length ?: return)
-        if (text.isEmpty()) return
+        val prefixLength = commenter.lineCommentPrefix?.length ?: return
+
+        val comment = commentSource.substring(prefixLength)
+        if (comment.isEmpty()) return
 
         EditorColorsManager.getInstance()
 
-        if (text.startsWith("#")) {
-            val split = text.substring(1).split(WHITESPACES_PATTERN, limit = 2)
+        if (comment.startsWith("#")) {
+            val commentSegments = comment.substring(1).split(WHITESPACES_PATTERN, limit = 2)
 
-            when (val command = split[0]) {
+            when (val directive = commentSegments[0]) {
                 "if" -> {
                     preprocessorState.push(PreprocessorState.IF)
 
-                    if (split.size < 2) {
+                    if (commentSegments.size < 2) {
                         fail(element, "Preprocessor directive \"if\" is missing a condition.")
                         return
                     }
 
-                    val condition = split[1]
+                    val conditionsSource = commentSegments[1]
+                    val conditions = conditionsSource.split(SPLIT_PATTERN)
 
-                    val segments = condition.split(SPLIT_PATTERN)
+                    var nextStartPos = prefixLength + 3
+                    for (condition in conditions) {
+                        val position = commentSource.indexOf(condition, nextStartPos)
+                        nextStartPos = position + condition.length
 
-                    for (segment in segments) {
-                        val pos = text.indexOf(segment)
-                        val result = EXPR_PATTERN.find(segment)
+                        val conditionMatcher = EXPR_PATTERN.find(condition)
 
-                        if (result == null || result.groups.size < 4) {
-                            val info = HighlightInfo
-                                .newHighlightInfo(HighlightInfoType.ERROR)
-                                .range(element, pos + prefixLength, pos + prefixLength + segment.length)
-                                .descriptionAndTooltip("Invalid condition \"$segment\"")
-                                .create()
-
-                            holder.add(info)
-
+                        if (conditionMatcher == null || conditionMatcher.groups.size < 4) {
+                            holder.add(condition.trim().toInvalidConditionErrorHighlight(element, position))
                             continue
                         }
 
-                        val lhs = result.groups[1]!!
-                        numberOrId(element, lhs)
-
-                        val rhs = result.groups[3]!!
-                        numberOrId(element, rhs)
+                        holder.add(conditionMatcher.groups[1]?.toNumericOrVariableHighlight(element, position))
+                        holder.add(conditionMatcher.groups[3]?.toNumericOrVariableHighlight(element, position))
                     }
 
-                    val info = HighlightInfo
-                        .newHighlightInfo(DIRECTIVE_TYPE)
-                        .range(element as PsiElement, element.startOffset + prefixLength, element.startOffset + prefixLength + 3)
-                        .textAttributes(DIRECTIVE_ATTRIBUTES)
-                        .create()
-
-                    holder.add(info)
+                    holder.add(directive.toDirectiveHighlight(element, prefixLength))
                 }
                 "ifdef" -> {
                     preprocessorState.push(PreprocessorState.IF)
 
-                    if (split.size < 2) {
+                    if (commentSegments.size < 2) {
                         fail(element, "Preprocessor directive \"ifdef\" is missing an identifier.")
                         return
                     }
 
-                    val directiveInfo = HighlightInfo
-                        .newHighlightInfo(DIRECTIVE_TYPE)
-                        .range(element as PsiElement, element.startOffset + prefixLength, element.startOffset + prefixLength + 6)
-                        .textAttributes(DIRECTIVE_ATTRIBUTES)
-                        .create()
-
-                    holder.add(directiveInfo)
+                    holder.add(directive.toDirectiveHighlight(element, prefixLength))
 
                     val idInfo = HighlightInfo
                         .newHighlightInfo(IDENTIFIER_TYPE)
-                        .range(element as PsiElement, element.startOffset + prefixLength + 7, element.startOffset + prefixLength + 7 + split[1].length)
+                        .range(element as PsiElement, element.startOffset + prefixLength + 7, element.startOffset + prefixLength + 7 + commentSegments[1].length)
                         .textAttributes(IDENTIFIER_ATTRIBUTES)
                         .create()
 
@@ -147,18 +123,12 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
                         return
                     }
 
-                    if (split.size > 1) {
+                    if (commentSegments.size > 1) {
                         fail(element, "Preprocessor directive \"else\" does not require any arguments.")
                         return
                     }
 
-                    val directiveInfo = HighlightInfo
-                        .newHighlightInfo(DIRECTIVE_TYPE)
-                        .range(element as PsiElement, element.startOffset + prefixLength, element.startOffset + prefixLength + 5)
-                        .textAttributes(DIRECTIVE_ATTRIBUTES)
-                        .create()
-
-                    holder.add(directiveInfo)
+                    holder.add(directive.toDirectiveHighlight(element, prefixLength))
                 }
                 "endif" -> {
                     val state = preprocessorState.pollFirst()
@@ -168,33 +138,21 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
                         return
                     }
 
-                    if (split.size > 1) {
+                    if (commentSegments.size > 1) {
                         fail(element, "Preprocessor directive \"endif\" does not require any arguments.")
                         return
                     }
 
-                    val directiveInfo = HighlightInfo
-                        .newHighlightInfo(DIRECTIVE_TYPE)
-                        .range(element as PsiElement, element.startOffset + prefixLength, element.startOffset + prefixLength + 6)
-                        .textAttributes(DIRECTIVE_ATTRIBUTES)
-                        .create()
-
-                    holder.add(directiveInfo)
+                    holder.add(directive.toDirectiveHighlight(element, prefixLength))
                 }
                 else -> {
-                    fail(element, "Unknown preprocessor directive \"$command\"")
+                    fail(element, "Unknown preprocessor directive \"$directive\"")
                 }
             }
-        } else if (text.startsWith("$$")) {
-            val directiveInfo = HighlightInfo
-                .newHighlightInfo(DIRECTIVE_TYPE)
-                .range(element as PsiElement, element.startOffset + prefixLength, element.startOffset + prefixLength + 2)
-                .textAttributes(DIRECTIVE_ATTRIBUTES)
-                .create()
+        } else if (comment.startsWith("$$")) {
+            holder.add("$$".toDirectiveHighlight(element, prefixLength))
 
-            holder.add(directiveInfo)
-
-            highlightCodeBlock(element, element.startOffset + prefixLength + 2, text.substring(2))
+            highlightCodeBlock(element, element.startOffset + prefixLength + 2, comment.substring(2))
         }
     }
 
@@ -226,34 +184,6 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         }
     }
 
-    private fun numberOrId(element: PsiCommentImpl, match: MatchGroup) {
-        if (match.value.toIntOrNull() != null) {
-            val info = HighlightInfo
-                .newHighlightInfo(NUMBER_TYPE)
-                .colorMatch(element, match)
-                .textAttributes(NUMBER_ATTRIBUTES)
-                .create()
-
-            holder.add(info)
-        } else {
-            val info = HighlightInfo
-                .newHighlightInfo(IDENTIFIER_TYPE)
-                .colorMatch(element, match)
-                .textAttributes(IDENTIFIER_ATTRIBUTES)
-                .create()
-
-            holder.add(info)
-        }
-    }
-
-    private fun HighlightInfo.Builder.colorMatch(element: PsiCommentImpl, match: MatchGroup) = apply {
-        this.range(
-            element as PsiElement,
-            element.startOffset + 6 + match.range.first,
-            element.startOffset + 6 + match.range.last + 1
-        )
-    }
-
     private fun fail(element: PsiElement, text: String) {
         val info = HighlightInfo
             .newHighlightInfo(HighlightInfoType.ERROR)
@@ -264,6 +194,44 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         holder.add(info)
     }
 
+    private fun MatchGroup.toNumericOrVariableHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo?
+    {
+        val builder = if (value.trim().toIntOrNull() != null)
+        {
+            HighlightInfo
+                .newHighlightInfo(NUMBER_TYPE)
+                .textAttributes(NUMBER_ATTRIBUTES)
+        }
+        else
+        {
+            HighlightInfo
+                .newHighlightInfo(IDENTIFIER_TYPE)
+                .textAttributes(IDENTIFIER_ATTRIBUTES)
+        }
+
+        return builder
+            .range(element, element.startOffset + offset + range.first, element.startOffset + offset + range.last + 1)
+            .create()
+    }
+
+    private fun String.toDirectiveHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo?
+    {
+        return HighlightInfo
+            .newHighlightInfo(DIRECTIVE_TYPE)
+            .textAttributes(DIRECTIVE_ATTRIBUTES)
+            .range(element, element.startOffset + offset, element.startOffset + offset + 1 + length)
+            .create()
+    }
+
+    private fun String.toInvalidConditionErrorHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo?
+    {
+        return HighlightInfo
+            .newHighlightInfo(HighlightInfoType.ERROR)
+            .range(element, element.startOffset + offset, element.startOffset + offset + length)
+            .descriptionAndTooltip("Invalid condition \"$this\"")
+            .create()
+    }
+
     companion object {
         val BOLD_ATTRIBUTE = TextAttributes(null, null, null, null, Font.BOLD)
         val SCHEME = EditorColorsManager.getInstance().globalScheme
@@ -271,6 +239,10 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         val DIRECTIVE_COLOR = DefaultLanguageHighlighterColors.KEYWORD
         val DIRECTIVE_ATTRIBUTES = TextAttributes.merge(SCHEME.getAttributes(DIRECTIVE_COLOR), BOLD_ATTRIBUTE)
         val DIRECTIVE_TYPE = HighlightInfoType.HighlightInfoTypeImpl(HighlightSeverity.INFORMATION, DIRECTIVE_COLOR)
+
+        val OPERATOR_COLOR = DefaultLanguageHighlighterColors.OPERATION_SIGN
+        val OPERATOR_ATTRIBUTES = SCHEME.getAttributes(OPERATOR_COLOR)
+        val OPERATOR_TYPE = HighlightInfoType.HighlightInfoTypeImpl(HighlightSeverity.INFORMATION, OPERATOR_COLOR)
 
         val IDENTIFIER_COLOR = DefaultLanguageHighlighterColors.IDENTIFIER
         val IDENTIFIER_ATTRIBUTES = TextAttributes.merge(SCHEME.getAttributes(IDENTIFIER_COLOR), BOLD_ATTRIBUTE)
