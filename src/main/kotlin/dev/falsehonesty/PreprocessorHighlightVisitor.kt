@@ -194,16 +194,12 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         holder.add(info)
     }
 
-    private fun MatchGroup.toNumericOrVariableHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo?
-    {
-        val builder = if (value.trim().toIntOrNull() != null)
-        {
+    private fun MatchGroup.toNumericOrVariableHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo? {
+        val builder = if (value.trim().toIntOrNull() != null) {
             HighlightInfo
                 .newHighlightInfo(NUMBER_TYPE)
                 .textAttributes(NUMBER_ATTRIBUTES)
-        }
-        else
-        {
+        } else {
             HighlightInfo
                 .newHighlightInfo(IDENTIFIER_TYPE)
                 .textAttributes(IDENTIFIER_ATTRIBUTES)
@@ -214,8 +210,7 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
             .create()
     }
 
-    private fun String.toDirectiveHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo?
-    {
+    private fun String.toDirectiveHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo? {
         return HighlightInfo
             .newHighlightInfo(DIRECTIVE_TYPE)
             .textAttributes(DIRECTIVE_ATTRIBUTES)
@@ -223,8 +218,7 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
             .create()
     }
 
-    private fun String.toInvalidConditionErrorHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo?
-    {
+    private fun String.toInvalidConditionErrorHighlight(element: PsiCommentImpl, offset: Int = 0): HighlightInfo? {
         return HighlightInfo
             .newHighlightInfo(HighlightInfoType.ERROR)
             .range(element, element.startOffset + offset, element.startOffset + offset + length)
