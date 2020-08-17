@@ -279,7 +279,7 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         val NUMBER_ATTRIBUTES = TextAttributes.merge(SCHEME.getAttributes(NUMBER_COLOR), BOLD_ATTRIBUTE)
         val NUMBER_TYPE = HighlightInfoType.HighlightInfoTypeImpl(HighlightSeverity.INFORMATION, NUMBER_COLOR)
 
-        private val EXPR_PATTERN = "(.+)(<=|>=|<|>)(.+)".toRegex()
+        private val EXPR_PATTERN = "(.+)(==|!=|<=|>=|<|>)(.+)".toRegex()
         private val OR_PATTERN = Pattern.quote("||")
         private val AND_PATTERN = Pattern.quote("&&")
         private val SPLIT_PATTERN = Pattern.compile("$OR_PATTERN|$AND_PATTERN")
