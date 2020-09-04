@@ -249,7 +249,7 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         private val LOGGER: Logger = Logger.getInstance(PreprocessorHighlightVisitor::class.java)
 
         private val WHITESPACES_PATTERN = "\\s+".toRegex()
-        private val EXPR_PATTERN = "(.+)(<=|>=|<|>)(.+)".toRegex()
+        private val EXPR_PATTERN = "(.+)(==|!=|<=|>=|<|>)(.+)".toRegex()
         private val OR_PATTERN = Pattern.quote("||")
         private val AND_PATTERN = Pattern.quote("&&")
         private val SPLIT_PATTERN = Pattern.compile("$OR_PATTERN|$AND_PATTERN")
