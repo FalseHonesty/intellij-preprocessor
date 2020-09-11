@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'dev.falsehonesty'
-version '0.3.0'
+version '0.4.0'
 
 repositories {
     mavenCentral()
@@ -29,10 +29,8 @@ compileTestKotlin {
 }
 patchPluginXml {
     changeNotes """
-      Fix highlighting for conditions such as `//#if     VAR_1   >    VAR_2  &&  VAR_3< VAR_4`
-      Added support for equality expressions (`==` and `!=`)
-      
-      Thank you @JasonHK so much for these changes :)"""
+      Implemented support for C-style if directives
+      Highlighting for //#if FABRIC or //#if MC>11502 && FORGE now are supported!"""
     // please see https://jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description
     sinceBuild "201.6487"
 }
