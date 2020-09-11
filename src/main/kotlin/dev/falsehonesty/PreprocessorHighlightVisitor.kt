@@ -80,13 +80,22 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
 
                     var nextStartPos = prefixLength + 3
                     for (condition in conditions) {
-                        val position = commentSource.indexOf(condition, nextStartPos)
-                        nextStartPos = position + condition.length
+                        val trimmedCondition = condition.trim()
 
-                        val conditionMatcher = EXPR_PATTERN.find(condition)
+                        val position = commentSource.indexOf(trimmedCondition, nextStartPos)
+                        nextStartPos = position + trimmedCondition.length
+
+                        val conditionMatcher = EXPR_PATTERN.find(trimmedCondition)
 
                         if (conditionMatcher == null || conditionMatcher.groups.size < 4) {
-                            holder.add(condition.trim().toInvalidConditionErrorHighlight(element, position))
+                            val identifierMatcher = IDENTIFIER_PATTERN.matchEntire(trimmedCondition)
+
+                            if (identifierMatcher != null) {
+                                holder.add(identifierMatcher.groups[0]?.toNumericOrVariableHighlight(element, position))
+                            } else {
+                                holder.add(trimmedCondition.toInvalidConditionErrorHighlight(element, position))
+                            }
+
                             continue
                         }
 
@@ -250,6 +259,7 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
 
         private val WHITESPACES_PATTERN = "\\s+".toRegex()
         private val EXPR_PATTERN = "(.+)(==|!=|<=|>=|<|>)(.+)".toRegex()
+        private val IDENTIFIER_PATTERN = "[A-Za-z0-9]+".toRegex()
         private val OR_PATTERN = Pattern.quote("||")
         private val AND_PATTERN = Pattern.quote("&&")
         private val SPLIT_PATTERN = Pattern.compile("$OR_PATTERN|$AND_PATTERN")
