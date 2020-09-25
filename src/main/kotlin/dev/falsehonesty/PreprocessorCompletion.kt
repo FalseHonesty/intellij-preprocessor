@@ -32,6 +32,6 @@ class PreprocessorCompletion : CompletionContributor(), DumbAware {
             }
         }
 
-        private val KEYWORDS = listOf("#if", "#else", "#endif", "#ifdef")
+        private val KEYWORDS = listOf("#if", "#else", "#elseif", "#endif", "#ifdef")
     }
 }

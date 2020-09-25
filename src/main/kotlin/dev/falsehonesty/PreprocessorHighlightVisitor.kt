@@ -67,11 +67,19 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
             val commentSegments = comment.substring(1).split(WHITESPACES_PATTERN, limit = 2)
 
             when (val directive = commentSegments[0]) {
-                "if" -> {
+                "if", "elseif" -> {
+                    if (directive == "elseif") {
+                        val existingIf = preprocessorState.pollFirst()
+                        if (existingIf != PreprocessorState.IF) {
+                            fail(element, "Preprocessor directive \"elseif\" must have a preceding \"if\" or \"elseif\".")
+                            return
+                        }
+                    }
+
                     preprocessorState.push(PreprocessorState.IF)
 
                     if (commentSegments.size < 2) {
-                        fail(element, "Preprocessor directive \"if\" is missing a condition.")
+                        fail(element, "Preprocessor directive \"$directive\" is missing a condition.")
                         return
                     }
 
