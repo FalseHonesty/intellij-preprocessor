@@ -18,7 +18,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.PsiCommentImpl
-import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import com.intellij.refactoring.suggested.endOffset
 import java.awt.Font
 import java.util.*
 import java.util.regex.Pattern
@@ -78,8 +78,10 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
 
                     preprocessorState.push(PreprocessorState.IF)
 
+                    holder.add(directive.toDirectiveHighlight(element, prefixLength))
+
                     if (commentSegments.size < 2) {
-                        fail(element, "Preprocessor directive \"$directive\" is missing a condition.")
+                        fail(element, "Preprocessor directive \"$directive\" is missing a condition.", eol = true)
                         return
                     }
 
@@ -110,18 +112,16 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
                         holder.add(conditionMatcher.groups[1]?.toNumericOrVariableHighlight(element, position))
                         holder.add(conditionMatcher.groups[3]?.toNumericOrVariableHighlight(element, position))
                     }
-
-                    holder.add(directive.toDirectiveHighlight(element, prefixLength))
                 }
                 "ifdef" -> {
                     preprocessorState.push(PreprocessorState.IF)
 
+                    holder.add(directive.toDirectiveHighlight(element, prefixLength))
+
                     if (commentSegments.size < 2) {
-                        fail(element, "Preprocessor directive \"ifdef\" is missing an identifier.")
+                        fail(element, "Preprocessor directive \"ifdef\" is missing an identifier.", eol = true)
                         return
                     }
-
-                    holder.add(directive.toDirectiveHighlight(element, prefixLength))
 
                     val idInfo = HighlightInfo
                         .newHighlightInfo(IDENTIFIER_TYPE)
@@ -201,11 +201,18 @@ class PreprocessorHighlightVisitor(private val project: Project) : HighlightVisi
         }
     }
 
-    private fun fail(element: PsiElement, text: String) {
+    private fun fail(element: PsiElement, text: String, eol: Boolean = false) {
         val info = HighlightInfo
             .newHighlightInfo(HighlightInfoType.ERROR)
-            .range(element)
             .descriptionAndTooltip(text)
+            .apply {
+                if (eol) {
+                    endOfLine()
+                    range(element.endOffset, element.endOffset)
+                } else {
+                    range(element)
+                }
+            }
             .create()
 
         holder.add(info)

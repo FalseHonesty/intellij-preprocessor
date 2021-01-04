@@ -1,11 +1,11 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '0.4.21'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.71'
+    id 'org.jetbrains.intellij' version '0.6.5'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
 }
 
 group 'dev.falsehonesty'
-version '0.5.0'
+version '0.6.0'
 
 repositories {
     mavenCentral()
@@ -18,22 +18,29 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '202.6397.94'
-    plugins 'java', 'org.jetbrains.kotlin:1.3.71-release-IJ2020.1-1'
+    version '203.6682.168'
+    plugins 'java', 'Kotlin'
 }
+
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
 patchPluginXml {
     changeNotes """
-      Implemented support for elseif directives
-      Highlighting for //#elseif FABRIC and //#elseif MC>10809 is now supported!!"""
+      Added better highlighting for if/elseif/ifdef directives. When missing the condition for those directives,
+      the directive itself will still highlight and only the end of the line where the condition is missing will error
+      
+      Also support IJ 2020.3"""
     // please see https://jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description
     sinceBuild "201.6487"
+    untilBuild "203.*"
 }
+
 publishPlugin {
     token intellijPublishToken
 }
