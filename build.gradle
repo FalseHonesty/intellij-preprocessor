@@ -1,11 +1,11 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '0.6.5'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
+    id 'org.jetbrains.intellij' version '0.7.2'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
 }
 
 group 'dev.falsehonesty'
-version '0.6.0'
+version '0.6.1'
 
 repositories {
     mavenCentral()
@@ -18,7 +18,7 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '203.6682.168'
+    version '211.6693.111'
     plugins 'java', 'Kotlin'
 }
 
@@ -32,13 +32,10 @@ compileTestKotlin {
 
 patchPluginXml {
     changeNotes """
-      Added better highlighting for if/elseif/ifdef directives. When missing the condition for those directives,
-      the directive itself will still highlight and only the end of the line where the condition is missing will error
-      
-      Also support IJ 2020.3"""
+      Add support for 2021.1"""
     // please see https://jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description
     sinceBuild "201.6487"
-    untilBuild "203.*"
+    untilBuild "211.*"
 }
 
 publishPlugin {
